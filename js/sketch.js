@@ -1,14 +1,14 @@
 let flock;
 
 function setup() {
-    createCanvas(800, 600) //canvas size
+    createCanvas(1200, 700) //canvas size
 
     // Initialize the flock
     flock = new Flock();
 
     // Create initial boids
     for (let i = 0; i < 20; i++) {
-        flock.addBoid(random(width), random(height));
+        flock.addBoid(random(width), random(height), i);
     }
 }
 

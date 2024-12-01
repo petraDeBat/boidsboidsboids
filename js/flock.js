@@ -3,8 +3,8 @@ class Flock {
         this.boids = [];
     }
     
-    addBoid(x, y) {
-        this.boids.push(new Boid(x, y));
+    addBoid(x, y, id) {
+        this.boids.push(new Boid(x, y, id));
     }
     
     run() {
