@@ -7,15 +7,15 @@ class Boid {
         this.velocity = p5.Vector.random2D();
         this.acceleration = createVector(0, 0);
 
-        this.maxSpeed = 4
+        this.maxSpeed = 5
         this.maxForce = 0.2
 		this.detectionRadius = 100
         this.desiredSeparation = 50.0
 
         // Steering forces
-        this.separationWeight = 1.5;
-        this.alignmentWeight = 1.0;
-        this.cohesionWeight = 0.5;
+        this.separationWeight = 2.0;
+        this.alignmentWeight = 1.5;
+        this.cohesionWeight = 1.5;
 
 		// for testing the boids
 		this.id = id
@@ -83,75 +83,85 @@ class Boid {
 
         if (boidInRad > 0) {
             // let avgVelocity = sumVelocity / boidInRad
-            let avgVector = sumVectors.div(boidInRad)
-            avgVector.mult(this.maxSpeed);
-            avgVector.sub(this.velocity);
-            avgVector.limit(this.maxForce);
-            return avgVector
+            sumVectors.div(boidInRad)
+            sumVectors.normalize();
+            sumVectors.mult(this.maxSpeed);
+            sumVectors.sub(this.velocity);
+            sumVectors.limit(this.maxForce);
         }
 
         return sumVectors;
 
     }
 
+	/*
+	Function Name: align
+	Input: list of boids
+	Return: the steering velocity the boid should use to reach the average
+	velocity of the boids in the detection radius 
+	Def: Calculates the avg velocity of boids in the dectection radius,
+	normalizes the avg, then multiples by max speed.
+	Calculates steer force (steer = desired v - current v) 
+	and limit it to max force
+	*/
     align(boids) {
-		// Calculate the average velocity of nearby boids
-		// for each boid in boids...
-			// if boid falls under radius
-				//get avg velocity 
-
-		// ...return avg velocity so boid aims to reach it?
-
 		let sumVelocity = createVector(0, 0)
-		let boidInRad = 0
+		let boidsInRadius = 0
 
+		// Summation of velocities in detection radius 
 		for (let boid of boids) {
-			// const distance = Math.sqrt((this.position.x - boid.position.x) ** 2 + (this.position.y - boid.position.y) ** 2)
 			const distance = p5.Vector.dist(this.position, boid.position)
-            if (distance < this.detectionRadius) {
+            if (boid != this && distance < this.detectionRadius) {
 				sumVelocity.add(boid.velocity)
-				boidInRad++
+				boidsInRadius++
 			}
 		}
 
-        if (boidInRad > 0) {
-            // let avgVelocity = sumVelocity / boidInRad
-            sumVelocity.div(boidInRad)
-            sumVelocity.normalize()
-            sumVelocity.mult(this.maxSpeed)
-            let steer = p5.Vector.sub(sumVelocity, this.velocity)
+		// Calculate steer velocity needed to reach average velocity in
+		// detection radius, given there are other boids in the radius 
+        if (boidsInRadius > 0) {
+            let avgVelocity = sumVelocity
+            avgVelocity.div(boidsInRadius)
+            avgVelocity.normalize()
+            avgVelocity.mult(this.maxSpeed)
+            let steer = p5.Vector.sub(avgVelocity, this.velocity)
             steer.limit(this.maxForce)
             return steer
         }
 
+		// otherwise, return steering velocity (0,0)
+		// boid will continue using current velocity
         return createVector(0, 0);
     }
 
+	/*
+	Function Name: cohesion
+	Input: list of boids
+	Return: the steering velocity the boid should use to reach the average
+	position of the boids in the detection radius 
+	Def: Calculates the avg positions of boids in the dectection radius.
+	Calculates steering velocity by subtract avg position from the current
+	position to vector pointing from current boid to avg position, normalizes
+	it, multiples by max speed
+	 
+	*/
     cohesion(boids) {
-		// Calculate the average position of nearby boids
-		// for each boid in boids...
-			// if boid falls under radius
-				//get avg position  
-
-		// ...return avg position so boid steers towards it?
-
 		let sumPosition = createVector(0, 0)
 		let boidInRad = 0
 
 		for (let boid of boids) {
-			// const distance = Math.sqrt((this.position.x - boid.position.x) ** 2 + (this.position.y - boid.position.y) ** 2)
 			const distance = p5.Vector.dist(this.position, boid.position)
-            if (distance > 0 && distance < this.detectionRadius) {
+            if (boid != this && distance < this.detectionRadius) {
 				sumPosition.add(boid.position)
 				boidInRad++	
 			}
 		}
 
         if (boidInRad > 0) {
-            // let avgVelocity = sumVelocity / boidInRad
-            sumPosition.div(boidInRad)
+            let avgPosition = sumPosition
+            avgPosition.div(boidInRad)
 
-            let desired = p5.Vector.sub(sumPosition, this.position);
+            let desired = p5.Vector.sub(avgPosition, this.position);
             desired.normalize();
             desired.mult(this.maxSpeed);
             let steer = p5.Vector.sub(desired, this.velocity);
@@ -177,9 +187,7 @@ class Boid {
         //     this.velocity = this.velocity * 30
         // }
 
-        // console.log(this.velocity.mag())
-        // 2. If it goes beyond the edge of the screen wrap it around
-		// screen size width, height
+        // Wrap around screen
 		if (this.position.x < 0) {
 			this.position.x = width
 		}
@@ -201,7 +209,7 @@ class Boid {
 		if (this.id == 0) {
 			stroke(255, 0, 0)
 			// draw radius
-			noFill();
+			fill(255, 102, 102, 100) // Light shade of red with some transparency
         	ellipse(this.position.x, this.position.y, this.detectionRadius * 2);
 			
 		} 

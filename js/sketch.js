@@ -7,7 +7,7 @@ function setup() {
     flock = new Flock();
 
     // Create initial boids
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 50; i++) {
         flock.addBoid(random(width), random(height), i);
     }
 }
