@@ -257,18 +257,11 @@ class Boid {
             this.acceleration.mult(0)
         }
         if (this.state !== 'perched') {
-            // 0. Update velocity based on acceleration
+            // Update velocity based on acceleration
             this.position.add(this.velocity)
             this.velocity.add(this.acceleration)
             this.velocity.limit(params.maxSpeed)
             this.acceleration.mult(0)
-            // 1. Update position based on velocitry
-
-            // if (this.velocity.mag() > 30) {
-            //     this.velocity.normalize()
-            //     this.velocity = this.velocity * 30
-            // }
-
         }
 
         // Wrap around screen
@@ -362,20 +355,54 @@ class Boid {
     }
 
     draw() {
-        // Draw direction triangle for all boids
+        // Draw debug information when in debug mode
+        if (debugMode) {
+            // Draw detection and separation radiuses
+            noFill()
+            
+            // For all boids - draw faint circles
+            strokeWeight(1)
+            stroke(200, 200, 200, 50)
+            ellipse(this.position.x, this.position.y, params.detectionRadius * 2)
+            stroke(200, 100, 100, 50)
+            ellipse(this.position.x, this.position.y, params.desiredSeparation * 2)
+            
+            // Draw direction vector
+            stroke(0, 255, 0, 50)
+            let directionEnd = p5.Vector.add(this.position, p5.Vector.mult(this.velocity, 20))
+            line(this.position.x, this.position.y, directionEnd.x, directionEnd.y)
+            
+            // Special highlighting for boid with ID 0
+            if (this.id === 0) {
+                strokeWeight(2)
+                // Detection radius in blue
+                stroke(0, 0, 255, 100)
+                ellipse(this.position.x, this.position.y, params.detectionRadius * 2)
+                // Separation radius in red
+                stroke(255, 0, 0, 100)
+                ellipse(this.position.x, this.position.y, params.desiredSeparation * 2)
+                // Direction vector in green
+                stroke(0, 255, 0, 200)
+                strokeWeight(3)
+                line(this.position.x, this.position.y, directionEnd.x, directionEnd.y)
+            }
+        }
+    
+        // Draw the boid triangle
         let arrowSize = 7
-        stroke(0, 0, 0)
+        strokeWeight(1)
     
-        // Color based on energy level - more red when low energy
-        let redComponent = map(this.energy, 0, this.maxEnergy, 255, 50) // More red when low energy
-        let greenComponent = map(this.energy, 0, this.maxEnergy, 50, 150) // Some green for better visibility
+        // Color based on energy level
+        let redComponent = map(this.energy, 0, this.maxEnergy, 255, 50)
+        let greenComponent = map(this.energy, 0, this.maxEnergy, 50, 150)
         stroke(redComponent, greenComponent, greenComponent)
+        fill(redComponent, greenComponent, greenComponent)
     
-        // Debug visualization only when debugMode is true
-        if (debugMode && this.id == 0) {
+        // Make boid 0 more visible in debug mode
+        if (debugMode && this.id === 0) {
             stroke(255, 0, 0)
-            fill(255, 102, 102, 100)
-            ellipse(this.position.x, this.position.y, this.detectionRadius * 2)
+            fill(255, 102, 102)
+            arrowSize = 10
         }
     
         // Draw boid triangle
