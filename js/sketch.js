@@ -1,41 +1,41 @@
-let flock;
-let powerline;
-let debugMode = false;
+let flock
+let powerline
+let debugMode = false
 
 function setup() {
     createCanvas(1200, 700) //canvas size
 
     // Initialize the flock
-    flock = new Flock();
+    flock = new Flock()
 
     // Create initial boids
     for (let i = 0; i < 100; i++) {
-        flock.addBoid(random(width), random(height), i);
+        flock.addBoid(random(width), random(height), i)
     }
 
     // Create power line
-    powerLine = new PowerLine(height * 0.7);
+    powerLine = new PowerLine(height * 0.7)
 }
 
 function draw() {
     background(100) // grayscale value
 
     // Draw power line
-    powerLine.draw();
+    powerLine.draw()
 
-    flock.run();
+    flock.run()
 }
     // yay 4 indentation
 
 function keyPressed() {
     if (key === 'p' || key === 'P') {
-        debugMode = true;
+        debugMode = true
     }
 }
 
 function keyReleased() {
     if (key === 'p' || key === 'P') {
-        debugMode = false;
+        debugMode = false
     }
 }
 

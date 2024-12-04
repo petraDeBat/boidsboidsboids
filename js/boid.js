@@ -3,9 +3,9 @@
 
 class Boid {
     constructor(x, y, id) {
-        this.position = createVector(x, y);
-        this.velocity = p5.Vector.random2D();
-        this.acceleration = createVector(0, 0);
+        this.position = createVector(x, y)
+        this.velocity = p5.Vector.random2D()
+        this.acceleration = createVector(0, 0)
 
         this.maxSpeed = 5
         this.maxForce = 0.2
@@ -38,59 +38,59 @@ class Boid {
         this.landingApproachDistance = 50
 
             // Takeoff properties
-    this.takeoffRadius = 50; // Smaller radius for takeoff influence
-    this.takeoffThreshold = 0.3; // 30% of nearby birds need to take off to trigger
-    this.lastTakeoffTime = 0; // Track when this bird took off
-    this.takeoffMemoryTime = 2000; // Remember takeoffs for 2 seconds
+    this.takeoffRadius = 50 // Smaller radius for takeoff influence
+    this.takeoffThreshold = 0.3 // 30% of nearby birds need to take off to trigger
+    this.lastTakeoffTime = 0 // Track when this bird took off
+    this.takeoffMemoryTime = 2000 // Remember takeoffs for 2 seconds
     }
 
     // State machine methods will go here
     setState(newState) {
-        this.state = newState;
+        this.state = newState
     }
 
     run(boids) {
-        this.flock(boids);
-        this.update();
-        this.draw();
+        this.flock(boids)
+        this.update()
+        this.draw()
     }
 
     flock(boids) {
-        let separation = this.separate(boids);
-        let alignment = this.align(boids);
-        let cohesion = this.cohesion(boids);
+        let separation = this.separate(boids)
+        let alignment = this.align(boids)
+        let cohesion = this.cohesion(boids)
 
 		// section for flying boids to avoid taking perched boids into account of their calulcation
 
-		let count = 0;
+		let count = 0
 		for (let boid of boids) {
 			if (boid.state !== 'perched') {
-				let sep = this.separate([boid]);
-				let ali = this.align([boid]);
-				let coh = this.cohesion([boid]);
+				let sep = this.separate([boid])
+				let ali = this.align([boid])
+				let coh = this.cohesion([boid])
 	
-				separation.add(sep);
-				alignment.add(ali);
-				cohesion.add(coh);
-				count++;
+				separation.add(sep)
+				alignment.add(ali)
+				cohesion.add(coh)
+				count++
 			}
 		}
 	
 		if (count > 0) {
-			separation.div(count);
-			alignment.div(count);
-			cohesion.div(count);
+			separation.div(count)
+			alignment.div(count)
+			cohesion.div(count)
 		}
 
         // Weight these forces
-        separation.mult(this.separationWeight);
-        alignment.mult(this.alignmentWeight);
-        cohesion.mult(this.cohesionWeight);
+        separation.mult(this.separationWeight)
+        alignment.mult(this.alignmentWeight)
+        cohesion.mult(this.cohesionWeight)
 
         // Add the forces to acceleration
-        this.acceleration.add(separation);
-        this.acceleration.add(alignment);
-        this.acceleration.add(cohesion);
+        this.acceleration.add(separation)
+        this.acceleration.add(alignment)
+        this.acceleration.add(cohesion)
 
 		
 
@@ -105,11 +105,11 @@ class Boid {
     }
 
 	seek(target) {
-        let desired = p5.Vector.sub(target, this.position);
-        desired.setMag(this.maxSpeed);
-        let steer = p5.Vector.sub(desired, this.velocity);
-        steer.limit(this.maxForce);
-        return steer;
+        let desired = p5.Vector.sub(target, this.position)
+        desired.setMag(this.maxSpeed)
+        let steer = p5.Vector.sub(desired, this.velocity)
+        steer.limit(this.maxForce)
+        return steer
     }
 
     /*
@@ -141,13 +141,13 @@ class Boid {
         if (boidInRad > 0) {
             // let avgVelocity = sumVelocity / boidInRad
             sumVectors.div(boidInRad)
-            sumVectors.normalize();
-            sumVectors.mult(this.maxSpeed);
-            sumVectors.sub(this.velocity);
-            sumVectors.limit(this.maxForce);
+            sumVectors.normalize()
+            sumVectors.mult(this.maxSpeed)
+            sumVectors.sub(this.velocity)
+            sumVectors.limit(this.maxForce)
         }
 
-        return sumVectors;
+        return sumVectors
     }
 
     /*
@@ -187,7 +187,7 @@ class Boid {
 
         // otherwise, return steering velocity (0,0)
         // boid will continue using current velocity
-        return createVector(0, 0);
+        return createVector(0, 0)
     }
 
     /*
@@ -227,7 +227,7 @@ class Boid {
             return steer
         }
 
-        return createVector(0, 0);
+        return createVector(0, 0)
 
     }
 
@@ -235,17 +235,17 @@ class Boid {
         console.log(this.state)
         switch (this.state) {
             case 'flying':
-                this.updateFlying();
-                break;
+                this.updateFlying()
+                break
             case 'landing':
-                this.updateLanding();
-                break;
+                this.updateLanding()
+                break
             case 'perched':
-                this.updatePerched();
-                break;
+                this.updatePerched()
+                break
             case 'takeoff':
-                this.updateTakeoff();
-                break;
+                this.updateTakeoff()
+                break
         }
 
         if (this.state == 'landing') {
@@ -288,63 +288,63 @@ class Boid {
 
     updateFlying() {
         // Deplete energy while flying
-        this.energy = max(0, this.energy - this.energyDepletionRate);
+        this.energy = max(0, this.energy - this.energyDepletionRate)
 
         // Consider landing if energy is low
         if (this.energy < this.landingThreshold) {
-            this.findLandingSpot();
+            this.findLandingSpot()
         }
     }
     updateLanding() {
         if (this.perch.position) {
-            let d = p5.Vector.dist(this.position, this.perch.position);
+            let d = p5.Vector.dist(this.position, this.perch.position)
             if (d < 5) {
-                this.setState('perched');
-                this.position = this.perch.position.copy();
-                this.velocity.mult(0);
+                this.setState('perched')
+                this.position = this.perch.position.copy()
+                this.velocity.mult(0)
             }
         }
     }
     updatePerched() {
         // Recover energy while perched
-        this.energy = min(this.maxEnergy, this.energy + this.energyRecoveryRate);
+        this.energy = min(this.maxEnergy, this.energy + this.energyRecoveryRate)
 
         // Consider taking off if energy is high and neighbors are flying
         if (this.energy > this.maxEnergy * 0.8 && this.shouldTakeoff()) {
-            this.setState('takeoff');
+            this.setState('takeoff')
         }
     }
     updateTakeoff() {
-        this.velocity = createVector(random(-1, 1), random(-1, 1));
-        this.setState('flying');
-        this.perch.occupied = false;
-        this.perch = null;
-        this.lastTakeoffTime = millis();
+        this.velocity = createVector(random(-1, 1), random(-1, 1))
+        this.setState('flying')
+        this.perch.occupied = false
+        this.perch = null
+        this.lastTakeoffTime = millis()
     }
     findLandingSpot() {
         // This will be called from PowerLine class
         if (powerLine.findAvailablePerch(this)) {
-            this.setState('landing');
+            this.setState('landing')
         }
     }
 
     shouldTakeoff() {
-        if (random(1) < 0.001) return true;
+        if (random(1) < 0.001) return true
         
-        let nearbyBirds = 0;
-        let recentTakeoffs = 0;
-        const currentTime = millis();
+        let nearbyBirds = 0
+        let recentTakeoffs = 0
+        const currentTime = millis()
         
         // Check all other birds within takeoff radius
         for (let boid of flock.boids) {
             if (boid !== this) {
-                const distance = p5.Vector.dist(this.position, boid.position);
+                const distance = p5.Vector.dist(this.position, boid.position)
                 if (distance < this.takeoffRadius) {
-                    nearbyBirds++;
+                    nearbyBirds++
                     
                     // Count birds that took off recently
                     if (currentTime - boid.lastTakeoffTime < this.takeoffMemoryTime) {
-                        recentTakeoffs++;
+                        recentTakeoffs++
                     }
                 }
             }
@@ -352,40 +352,40 @@ class Boid {
         
         // If enough nearby birds took off recently, take off too
         if (nearbyBirds > 0) {
-            const takeoffRatio = recentTakeoffs / nearbyBirds;
+            const takeoffRatio = recentTakeoffs / nearbyBirds
             if (takeoffRatio > this.takeoffThreshold) {
-                return true;
+                return true
             }
         }
         
-        return false;
+        return false
     }
 
     draw() {
         // Draw direction triangle for all boids
-        let arrowSize = 7;
-        stroke(0, 0, 0);
+        let arrowSize = 7
+        stroke(0, 0, 0)
         
         // Color based on energy level
-        let energyColor = map(this.energy, 0, this.maxEnergy, 0, 255);
-        stroke(energyColor, 200, 200);
+        let energyColor = map(this.energy, 0, this.maxEnergy, 0, 255)
+        stroke(energyColor, 200, 200)
         
         // Debug visualization only when debugMode is true
         if (debugMode && this.id == 0) {
-            stroke(255, 0, 0);
-            fill(255, 102, 102, 100);
-            ellipse(this.position.x, this.position.y, this.detectionRadius * 2);
+            stroke(255, 0, 0)
+            fill(255, 102, 102, 100)
+            ellipse(this.position.x, this.position.y, this.detectionRadius * 2)
         }
     
         // Draw boid triangle
-        push();
-        translate(this.position.x, this.position.y);
-        rotate(this.velocity.heading());
-        beginShape();
-        vertex(0, -arrowSize / 2);
-        vertex(10, 0);
-        vertex(0, arrowSize / 2);
-        endShape(CLOSE);
-        pop();
+        push()
+        translate(this.position.x, this.position.y)
+        rotate(this.velocity.heading())
+        beginShape()
+        vertex(0, -arrowSize / 2)
+        vertex(10, 0)
+        vertex(0, arrowSize / 2)
+        endShape(CLOSE)
+        pop()
     }
 }
