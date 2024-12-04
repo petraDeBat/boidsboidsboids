@@ -63,7 +63,7 @@ function setup() {
 }
 
 function draw() {
-    background(100) // grayscale value
+    background('#145ab5')
     
     // Update parameters from sliders
     params = {

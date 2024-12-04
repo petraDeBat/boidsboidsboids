@@ -365,18 +365,19 @@ class Boid {
         // Draw direction triangle for all boids
         let arrowSize = 7
         stroke(0, 0, 0)
-
-        // Color based on energy level
-        let energyColor = map(this.energy, 0, this.maxEnergy, 0, 255)
-        stroke(energyColor, 200, 200)
-
+    
+        // Color based on energy level - more red when low energy
+        let redComponent = map(this.energy, 0, this.maxEnergy, 255, 50) // More red when low energy
+        let greenComponent = map(this.energy, 0, this.maxEnergy, 50, 150) // Some green for better visibility
+        stroke(redComponent, greenComponent, greenComponent)
+    
         // Debug visualization only when debugMode is true
         if (debugMode && this.id == 0) {
             stroke(255, 0, 0)
             fill(255, 102, 102, 100)
             ellipse(this.position.x, this.position.y, this.detectionRadius * 2)
         }
-
+    
         // Draw boid triangle
         push()
         translate(this.position.x, this.position.y)
