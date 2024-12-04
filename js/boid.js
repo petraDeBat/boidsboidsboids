@@ -330,34 +330,30 @@ class Boid {
     }
 
     draw() {
-        if (this.id == 0) {
-            stroke(255, 0, 0)
-            // draw radius
-            fill(255, 102, 102, 100) // Light shade of red with some transparency
+        // Draw direction triangle for all boids
+        let arrowSize = 7;
+        stroke(0, 0, 0);
+        
+        // Color based on energy level
+        let energyColor = map(this.energy, 0, this.maxEnergy, 0, 255);
+        stroke(energyColor, 200, 200);
+        
+        // Debug visualization only when debugMode is true
+        if (debugMode && this.id == 0) {
+            stroke(255, 0, 0);
+            fill(255, 102, 102, 100);
             ellipse(this.position.x, this.position.y, this.detectionRadius * 2);
-
         }
-        else {
-            stroke(0, 0, 0)
-            // Color based on energy level
-            let energyColor = map(this.energy, 0, this.maxEnergy, 0, 255);
-            stroke(energyColor, 200, 200);
-        }
-        // 1. Draw a circle at this.position
-        strokeWeight(5);
-        point(this.position);
-
-
-       // Draw a thin triangle to show direction
-		let arrowSize = 7;
-		push();
-		translate(this.position.x, this.position.y);
-		rotate(this.velocity.heading());
-		beginShape();
-		vertex(0, -arrowSize / 2);
-		vertex(10, 0);
-		vertex(0, arrowSize / 2);
-		endShape(CLOSE);
-		pop();
+    
+        // Draw boid triangle
+        push();
+        translate(this.position.x, this.position.y);
+        rotate(this.velocity.heading());
+        beginShape();
+        vertex(0, -arrowSize / 2);
+        vertex(10, 0);
+        vertex(0, arrowSize / 2);
+        endShape(CLOSE);
+        pop();
     }
 }

@@ -23,15 +23,17 @@ class PowerLine {
         strokeWeight(2);
         line(0, this.y, width, this.y);
         
-        // Draw perch points
-        noStroke();
-        for (let perch of this.perchPoints) {
-            if (perch.occupied) {
-                fill(255, 0, 0); // Red for occupied
-            } else {
-                fill(0, 255, 0); // Green for available
+        // Only draw perch indicators in debug mode
+        if (debugMode) {
+            noStroke();
+            for (let perch of this.perchPoints) {
+                if (perch.occupied) {
+                    fill(255, 0, 0); // Red for occupied
+                } else {
+                    fill(0, 255, 0); // Green for available
+                }
+                circle(perch.position.x, perch.position.y, 6); // Small circle for each perch point
             }
-            circle(perch.position.x, perch.position.y, 6); // Small circle for each perch point
         }
     }
 
@@ -65,4 +67,4 @@ class PowerLine {
             }
         }
     }
-} 
+}
