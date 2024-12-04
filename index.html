@@ -22,6 +22,21 @@
             align-items: center;
             min-height: 100vh;
             background: #333;
+            gap: 20px;
+        }
+        #controls {
+            background: #444;
+            padding: 20px;
+            border-radius: 8px;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
         }
         canvas {
             border: 1px solid #666;
@@ -29,5 +44,50 @@
     </style>
 </head>
 <body>
+    <div id="controls"">
+        <div style="margin-bottom: 10px;">
+            <label>Separation: </label>
+            <span id="separationValue">2.0</span>
+        </div>
+        <div id="separationSlider"></div>
+        
+        <div style="margin-bottom: 10px;">
+            <label>Cohesion: </label>
+            <span id="cohesionValue">1.5</span>
+        </div>
+        <div id="cohesionSlider"></div>
+        
+        <div style="margin-bottom: 10px;">
+            <label>Alignment: </label>
+            <span id="alignmentValue">1.5</span>
+        </div>
+        <div id="alignmentSlider"></div>
+        
+        <div style="margin-bottom: 10px;">
+            <label>Speed: </label>
+            <span id="speedValue">5.0</span>
+        </div>
+        <div id="speedSlider"></div>
+        
+        <div style="margin-bottom: 10px;">
+            <label>Detection: </label>
+            <span id="detectionValue">100</span>
+        </div>
+        <div id="detectionSlider"></div>
+        
+        <div style="margin-bottom: 10px;">
+            <label>Separation Radius: </label>
+            <span id="separationRadValue">50</span>
+        </div>
+        <div id="separationRadSlider"></div>
+        
+        <div style="margin-bottom: 10px;">
+            <label>Energy Use: </label>
+            <span id="energyValue">0.1</span>
+        </div>
+        <div id="energySlider"></div>
+
+        <button id="resetButton" style="margin-top: 10px; padding: 5px 10px;">Reset Values</button>
+    </div>
 </body>
-</html> 
+</html>

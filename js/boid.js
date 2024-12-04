@@ -83,9 +83,9 @@ class Boid {
         }
 
         // Weight these forces
-        separation.mult(this.separationWeight)
-        alignment.mult(this.alignmentWeight)
-        cohesion.mult(this.cohesionWeight)
+        separation.mult(params.separationWeight)
+        alignment.mult(params.alignmentWeight)
+        cohesion.mult(params.cohesionWeight)
 
         // Add the forces to acceleration
         this.acceleration.add(separation)
@@ -128,7 +128,7 @@ class Boid {
         for (let boid of boids) {
             const distance = p5.Vector.dist(this.position, boid.position)
 
-            if (boid != this && distance < this.desiredSeparation) {
+            if (boid != this && distance < params.desiredSeparation) {
                 // Get the difference (subtract) between the vectors
                 let difference = p5.Vector.sub(this.position, boid.position)
                 difference.normalize() // normalizes to have a magnitude of 1
@@ -167,7 +167,7 @@ class Boid {
         // Summation of velocities in detection radius 
         for (let boid of boids) {
             const distance = p5.Vector.dist(this.position, boid.position)
-            if (boid != this && distance < this.detectionRadius) {
+            if (boid != this && distance < params.detectionRadius) {
                 sumVelocity.add(boid.velocity)
                 boidsInRadius++
             }
@@ -260,7 +260,7 @@ class Boid {
             // 0. Update velocity based on acceleration
             this.position.add(this.velocity)
             this.velocity.add(this.acceleration)
-            this.velocity.limit(this.maxSpeed)
+            this.velocity.limit(params.maxSpeed)
             this.acceleration.mult(0)
             // 1. Update position based on velocitry
 
@@ -288,7 +288,7 @@ class Boid {
 
     updateFlying() {
         // Deplete energy while flying
-        this.energy = max(0, this.energy - this.energyDepletionRate)
+        this.energy = max(0, this.energy - params.energyDepletionRate)
 
         // Consider landing if energy is low
         if (this.energy < this.landingThreshold) {
