@@ -2,7 +2,7 @@ class PowerLine {
     constructor(y) {
         this.y = y;
         this.perchPoints = [];
-        this.spacing = 20; // Space between possible perch points
+        this.spacing = 10; // Space between possible perch points
 
         // Initialize perch points across the width of the canvas
         this.initPerchPoints();

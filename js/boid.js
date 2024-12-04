@@ -275,17 +275,14 @@ class Boid {
         if (this.position.x < 0) {
             this.position.x = width
         }
-        else if (this.position.x > width) {
+        if (this.position.x > width) {
             this.position.x = 0
         }
-        else if (this.position.y < 0) {
+        if (this.position.y < 0) {
             this.position.y = height
         }
-        else if (this.position.y > height) {
+        if (this.position.y > height) {
             this.position.y = 0
-        }
-        else {
-            // do nothing
         }
     }
 
