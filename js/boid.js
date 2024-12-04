@@ -16,7 +16,7 @@ class Boid {
         this.separationWeight = 2.0
         this.alignmentWeight = 1.5
         this.cohesionWeight = 1.5
-		this.landingWeight = 1.0 // Stronger weight for landing
+        this.landingWeight = 1.0 // Stronger weight for landing
 
 
 
@@ -37,11 +37,11 @@ class Boid {
         this.perch = null
         this.landingApproachDistance = 50
 
-            // Takeoff properties
-    this.takeoffRadius = 50 // Smaller radius for takeoff influence
-    this.takeoffThreshold = 0.3 // 30% of nearby birds need to take off to trigger
-    this.lastTakeoffTime = 0 // Track when this bird took off
-    this.takeoffMemoryTime = 2000 // Remember takeoffs for 2 seconds
+        // Takeoff properties
+        this.takeoffRadius = 50 // Smaller radius for takeoff influence
+        this.takeoffThreshold = 0.3 // 30% of nearby birds need to take off to trigger
+        this.lastTakeoffTime = 0 // Track when this bird took off
+        this.takeoffMemoryTime = 2000 // Remember takeoffs for 2 seconds
     }
 
     // State machine methods will go here
@@ -60,27 +60,27 @@ class Boid {
         let alignment = this.align(boids)
         let cohesion = this.cohesion(boids)
 
-		// section for flying boids to avoid taking perched boids into account of their calulcation
+        // section for flying boids to avoid taking perched boids into account of their calulcation
 
-		let count = 0
-		for (let boid of boids) {
-			if (boid.state !== 'perched') {
-				let sep = this.separate([boid])
-				let ali = this.align([boid])
-				let coh = this.cohesion([boid])
-	
-				separation.add(sep)
-				alignment.add(ali)
-				cohesion.add(coh)
-				count++
-			}
-		}
-	
-		if (count > 0) {
-			separation.div(count)
-			alignment.div(count)
-			cohesion.div(count)
-		}
+        let count = 0
+        for (let boid of boids) {
+            if (boid.state !== 'perched') {
+                let sep = this.separate([boid])
+                let ali = this.align([boid])
+                let coh = this.cohesion([boid])
+
+                separation.add(sep)
+                alignment.add(ali)
+                cohesion.add(coh)
+                count++
+            }
+        }
+
+        if (count > 0) {
+            separation.div(count)
+            alignment.div(count)
+            cohesion.div(count)
+        }
 
         // Weight these forces
         separation.mult(this.separationWeight)
@@ -92,7 +92,7 @@ class Boid {
         this.acceleration.add(alignment)
         this.acceleration.add(cohesion)
 
-		
+
 
         // console.log(this.acceleration)
 
@@ -104,7 +104,7 @@ class Boid {
         }
     }
 
-	seek(target) {
+    seek(target) {
         let desired = p5.Vector.sub(target, this.position)
         desired.setMag(this.maxSpeed)
         let steer = p5.Vector.sub(desired, this.velocity)
@@ -330,18 +330,18 @@ class Boid {
 
     shouldTakeoff() {
         if (random(1) < 0.001) return true
-        
+
         let nearbyBirds = 0
         let recentTakeoffs = 0
         const currentTime = millis()
-        
+
         // Check all other birds within takeoff radius
         for (let boid of flock.boids) {
             if (boid !== this) {
                 const distance = p5.Vector.dist(this.position, boid.position)
                 if (distance < this.takeoffRadius) {
                     nearbyBirds++
-                    
+
                     // Count birds that took off recently
                     if (currentTime - boid.lastTakeoffTime < this.takeoffMemoryTime) {
                         recentTakeoffs++
@@ -349,7 +349,7 @@ class Boid {
                 }
             }
         }
-        
+
         // If enough nearby birds took off recently, take off too
         if (nearbyBirds > 0) {
             const takeoffRatio = recentTakeoffs / nearbyBirds
@@ -357,7 +357,7 @@ class Boid {
                 return true
             }
         }
-        
+
         return false
     }
 
@@ -365,18 +365,18 @@ class Boid {
         // Draw direction triangle for all boids
         let arrowSize = 7
         stroke(0, 0, 0)
-        
+
         // Color based on energy level
         let energyColor = map(this.energy, 0, this.maxEnergy, 0, 255)
         stroke(energyColor, 200, 200)
-        
+
         // Debug visualization only when debugMode is true
         if (debugMode && this.id == 0) {
             stroke(255, 0, 0)
             fill(255, 102, 102, 100)
             ellipse(this.position.x, this.position.y, this.detectionRadius * 2)
         }
-    
+
         // Draw boid triangle
         push()
         translate(this.position.x, this.position.y)
