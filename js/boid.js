@@ -36,6 +36,12 @@ class Boid {
         // Landing properties
         this.perch = null
         this.landingApproachDistance = 50
+
+            // Takeoff properties
+    this.takeoffRadius = 50; // Smaller radius for takeoff influence
+    this.takeoffThreshold = 0.3; // 30% of nearby birds need to take off to trigger
+    this.lastTakeoffTime = 0; // Track when this bird took off
+    this.takeoffMemoryTime = 2000; // Remember takeoffs for 2 seconds
     }
 
     // State machine methods will go here
@@ -312,10 +318,11 @@ class Boid {
         }
     }
     updateTakeoff() {
-        this.velocity = createVector(random(-1, 1), -2);
+        this.velocity = createVector(random(-1, 1), random(-1, 1));
         this.setState('flying');
         this.perch.occupied = false;
-        this.perch = null
+        this.perch = null;
+        this.lastTakeoffTime = millis();
     }
     findLandingSpot() {
         // This will be called from PowerLine class
@@ -325,8 +332,36 @@ class Boid {
     }
 
     shouldTakeoff() {
-        // Simple random chance for now
-        return random(1) < 0.01;
+        if (random(1) < 0.001) return true;
+        
+        let nearbyBirds = 0;
+        let recentTakeoffs = 0;
+        const currentTime = millis();
+        
+        // Check all other birds within takeoff radius
+        for (let boid of flock.boids) {
+            if (boid !== this) {
+                const distance = p5.Vector.dist(this.position, boid.position);
+                if (distance < this.takeoffRadius) {
+                    nearbyBirds++;
+                    
+                    // Count birds that took off recently
+                    if (currentTime - boid.lastTakeoffTime < this.takeoffMemoryTime) {
+                        recentTakeoffs++;
+                    }
+                }
+            }
+        }
+        
+        // If enough nearby birds took off recently, take off too
+        if (nearbyBirds > 0) {
+            const takeoffRatio = recentTakeoffs / nearbyBirds;
+            if (takeoffRatio > this.takeoffThreshold) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     draw() {
