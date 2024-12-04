@@ -9,18 +9,40 @@ class Boid {
 
         this.maxSpeed = 5
         this.maxForce = 0.2
-		this.detectionRadius = 100
+        this.detectionRadius = 100
         this.desiredSeparation = 50.0
 
         // Steering forces
-        this.separationWeight = 2.0;
-        this.alignmentWeight = 1.5;
-        this.cohesionWeight = 1.5;
+        this.separationWeight = 2.0
+        this.alignmentWeight = 1.5
+        this.cohesionWeight = 1.5
+		this.landingWeight = 1.0 // Stronger weight for landing
 
-		// for testing the boids
-		this.id = id
+
+
+        // for testing specific boids
+        this.id = id
+
+        // State machine --> initializes with flying 
+        this.state = 'flying' // states: flying, landing, perched, takeoff
+
+        // Energy system
+        this.energy = random(40, 100)
+        this.maxEnergy = 100
+        this.energyDepletionRate = 0.1
+        this.energyRecoveryRate = this.energyDepletionRate * 2
+        this.landingThreshold = 30  // Energy level that triggers landing
+
+        // Landing properties
+        this.perch = null
+        this.landingApproachDistance = 50
     }
-    
+
+    // State machine methods will go here
+    setState(newState) {
+        this.state = newState;
+    }
+
     run(boids) {
         this.flock(boids);
         this.update();
@@ -32,6 +54,28 @@ class Boid {
         let alignment = this.align(boids);
         let cohesion = this.cohesion(boids);
 
+		// section for flying boids to avoid taking perched boids into account of their calulcation
+
+		let count = 0;
+		for (let boid of boids) {
+			if (boid.state !== 'perched') {
+				let sep = this.separate([boid]);
+				let ali = this.align([boid]);
+				let coh = this.cohesion([boid]);
+	
+				separation.add(sep);
+				alignment.add(ali);
+				cohesion.add(coh);
+				count++;
+			}
+		}
+	
+		if (count > 0) {
+			separation.div(count);
+			alignment.div(count);
+			cohesion.div(count);
+		}
+
         // Weight these forces
         separation.mult(this.separationWeight);
         alignment.mult(this.alignmentWeight);
@@ -42,44 +86,51 @@ class Boid {
         this.acceleration.add(alignment);
         this.acceleration.add(cohesion);
 
+		
+
         // console.log(this.acceleration)
 
-		if (this.id == 0 && !(separation.x === 0 && separation.y === 0)) {
-			console.log(`separation ${separation}`)
-			console.log(`alignment ${alignment}`)
-			console.log(`cohesion ${cohesion}`)
-			console.log(this.acceleration)
-		}
+        if (this.id == 0 && !(separation.x === 0 && separation.y === 0)) {
+            // console.log(`separation ${separation}`)
+            // console.log(`alignment ${alignment}`)
+            // console.log(`cohesion ${cohesion}`)
+            // console.log(this.acceleration)
+        }
     }
 
+	seek(target) {
+        let desired = p5.Vector.sub(target, this.position);
+        desired.setMag(this.maxSpeed);
+        let steer = p5.Vector.sub(desired, this.velocity);
+        steer.limit(this.maxForce);
+        return steer;
+    }
+
+    /*
+    Function Name: separate
+    Input: list of boids
+    Return: the steering velocity the boid should use to avoid (getting too close) 
+    to other boids
+    Def: Calculates the average vector that its magnitude in inversely
+    portionally to the distance of boids that fall in the desiredSeparation
+    radius. 
+    */
     separate(boids) {
-		// For each nearby boid, calculate a force pushing away from it
-		// for each boid in boids...
-			// if boid falls under radius
-				// calulate difference in position between the two boids
-		// get opposing vector (?????) and then average all opposing vectors together
-				
-		// return that vector
+        let sumVectors = createVector(0, 0)
+        let boidInRad = 0
 
-		let sumVectors = createVector(0, 0)
-		let boidInRad = 0
+        for (let boid of boids) {
+            const distance = p5.Vector.dist(this.position, boid.position)
 
-		for (let boid of boids) {
-			// const distance = Math.sqrt((this.position.x - boid.position.x) ** 2 + (this.position.y - boid.position.y) ** 2)
-			const distance = p5.Vector.dist(this.position, boid.position)
-			
-            if ((distance > 0) && (distance < this.desiredSeparation)) {
-				// if (this.id == 0) {console.log('WORKING?!?!')}
+            if (boid != this && distance < this.desiredSeparation) {
                 // Get the difference (subtract) between the vectors
                 let difference = p5.Vector.sub(this.position, boid.position)
-                difference.normalize()
-                difference.div(distance)
-				sumVectors.add(difference)
-				boidInRad++	
-			}
-
-		}
-
+                difference.normalize() // normalizes to have a magnitude of 1
+                difference.div(distance) // inversely proportional to the distance
+                sumVectors.add(difference)
+                boidInRad++
+            }
+        }
 
         if (boidInRad > 0) {
             // let avgVelocity = sumVelocity / boidInRad
@@ -91,34 +142,33 @@ class Boid {
         }
 
         return sumVectors;
-
     }
 
-	/*
-	Function Name: align
-	Input: list of boids
-	Return: the steering velocity the boid should use to reach the average
-	velocity of the boids in the detection radius 
-	Def: Calculates the avg velocity of boids in the dectection radius,
-	normalizes the avg, then multiples by max speed.
-	Calculates steer force (steer = desired v - current v) 
-	and limit it to max force
-	*/
+    /*
+    Function Name: align
+    Input: list of boids
+    Return: the steering velocity the boid should use to reach the average
+    velocity of the boids in the detection radius 
+    Def: Calculates the avg velocity of boids in the dectection radius,
+    normalizes the avg, then multiples by max speed.
+    Calculates steer force (steer = desired v - current v) 
+    and limit it to max force
+    */
     align(boids) {
-		let sumVelocity = createVector(0, 0)
-		let boidsInRadius = 0
+        let sumVelocity = createVector(0, 0)
+        let boidsInRadius = 0
 
-		// Summation of velocities in detection radius 
-		for (let boid of boids) {
-			const distance = p5.Vector.dist(this.position, boid.position)
+        // Summation of velocities in detection radius 
+        for (let boid of boids) {
+            const distance = p5.Vector.dist(this.position, boid.position)
             if (boid != this && distance < this.detectionRadius) {
-				sumVelocity.add(boid.velocity)
-				boidsInRadius++
-			}
-		}
+                sumVelocity.add(boid.velocity)
+                boidsInRadius++
+            }
+        }
 
-		// Calculate steer velocity needed to reach average velocity in
-		// detection radius, given there are other boids in the radius 
+        // Calculate steer velocity needed to reach average velocity in
+        // detection radius, given there are other boids in the radius 
         if (boidsInRadius > 0) {
             let avgVelocity = sumVelocity
             avgVelocity.div(boidsInRadius)
@@ -129,106 +179,185 @@ class Boid {
             return steer
         }
 
-		// otherwise, return steering velocity (0,0)
-		// boid will continue using current velocity
+        // otherwise, return steering velocity (0,0)
+        // boid will continue using current velocity
         return createVector(0, 0);
     }
 
-	/*
-	Function Name: cohesion
-	Input: list of boids
-	Return: the steering velocity the boid should use to reach the average
-	position of the boids in the detection radius 
-	Def: Calculates the avg positions of boids in the dectection radius.
-	Calculates steering velocity by subtract avg position from the current
-	position to vector pointing from current boid to avg position, normalizes
-	it, multiples by max speed
-	 
-	*/
+    /*
+    Function Name: cohesion
+    Input: list of boids
+    Return: the steering velocity the boid should use to reach the average
+    position of the boids in the detection radius 
+    Def: Calculates the avg positions of boids in the dectection radius.
+    Calculates desired velocity by subtract avg position from the current
+    position to vector pointing from current boid to avg position, normalizes
+    it, multiples by max speed.
+    Calculates steer force (steer = desired v - current v) 
+    and limit it to max force
+    */
     cohesion(boids) {
-		let sumPosition = createVector(0, 0)
-		let boidInRad = 0
+        let sumPosition = createVector(0, 0)
+        let boidInRad = 0
 
-		for (let boid of boids) {
-			const distance = p5.Vector.dist(this.position, boid.position)
+        for (let boid of boids) {
+            const distance = p5.Vector.dist(this.position, boid.position)
             if (boid != this && distance < this.detectionRadius) {
-				sumPosition.add(boid.position)
-				boidInRad++	
-			}
-		}
+                sumPosition.add(boid.position)
+                boidInRad++
+            }
+        }
 
         if (boidInRad > 0) {
             let avgPosition = sumPosition
             avgPosition.div(boidInRad)
 
-            let desired = p5.Vector.sub(avgPosition, this.position);
-            desired.normalize();
-            desired.mult(this.maxSpeed);
-            let steer = p5.Vector.sub(desired, this.velocity);
-            steer.limit(this.maxForce);
+            let desired = p5.Vector.sub(avgPosition, this.position)
+            desired.normalize()
+            desired.mult(this.maxSpeed)
+            let steer = p5.Vector.sub(desired, this.velocity)
+            steer.limit(this.maxForce)
 
             return steer
         }
 
         return createVector(0, 0);
-        
-    }
-    
-    update() {
-		// 0. Update velocity based on acceleration
-		this.position.add(this.velocity)
-		this.velocity.add(this.acceleration)
-		this.velocity.limit(this.maxSpeed)
-        this.acceleration.mult(0)
-        // 1. Update position based on velocitry
 
-        // if (this.velocity.mag() > 30) {
-        //     this.velocity.normalize()
-        //     this.velocity = this.velocity * 30
-        // }
+    }
+
+    update() {
+        console.log(this.state)
+        switch (this.state) {
+            case 'flying':
+                this.updateFlying();
+                break;
+            case 'landing':
+                this.updateLanding();
+                break;
+            case 'perched':
+                this.updatePerched();
+                break;
+            case 'takeoff':
+                this.updateTakeoff();
+                break;
+        }
+
+        if (this.state == 'landing') {
+            let speed = this.velocity.mag()
+            this.velocity = p5.Vector.sub(this.perch.position, this.position)
+            this.velocity.setMag(speed)
+            this.velocity.limit(this.maxSpeed / 3)
+            this.position.add(this.velocity)
+            this.acceleration.mult(0)
+        }
+        if (this.state !== 'perched') {
+            // 0. Update velocity based on acceleration
+            this.position.add(this.velocity)
+            this.velocity.add(this.acceleration)
+            this.velocity.limit(this.maxSpeed)
+            this.acceleration.mult(0)
+            // 1. Update position based on velocitry
+
+            // if (this.velocity.mag() > 30) {
+            //     this.velocity.normalize()
+            //     this.velocity = this.velocity * 30
+            // }
+
+        }
 
         // Wrap around screen
-		if (this.position.x < 0) {
-			this.position.x = width
-		}
-		else if (this.position.x > width) {
-			this.position.x = 0
-		}
-		else if (this.position.y < 0) {
-			this.position.y = height
-		}
-		else if (this.position.y > height) {
-			this.position.y = 0
-		}
-		else { 
-			// do nothing
-		}
-	}
-    
+        if (this.position.x < 0) {
+            this.position.x = width
+        }
+        else if (this.position.x > width) {
+            this.position.x = 0
+        }
+        else if (this.position.y < 0) {
+            this.position.y = height
+        }
+        else if (this.position.y > height) {
+            this.position.y = 0
+        }
+        else {
+            // do nothing
+        }
+    }
+
+    updateFlying() {
+        // Deplete energy while flying
+        this.energy = max(0, this.energy - this.energyDepletionRate);
+
+        // Consider landing if energy is low
+        if (this.energy < this.landingThreshold) {
+            this.findLandingSpot();
+        }
+    }
+    updateLanding() {
+        if (this.perch.position) {
+            let d = p5.Vector.dist(this.position, this.perch.position);
+            if (d < 5) {
+                this.setState('perched');
+                this.position = this.perch.position.copy();
+                this.velocity.mult(0);
+            }
+        }
+    }
+    updatePerched() {
+        // Recover energy while perched
+        this.energy = min(this.maxEnergy, this.energy + this.energyRecoveryRate);
+
+        // Consider taking off if energy is high and neighbors are flying
+        if (this.energy > this.maxEnergy * 0.8 && this.shouldTakeoff()) {
+            this.setState('takeoff');
+        }
+    }
+    updateTakeoff() {
+        this.velocity = createVector(random(-1, 1), -2);
+        this.setState('flying');
+        this.perch.occupied = false;
+        this.perch = null
+    }
+    findLandingSpot() {
+        // This will be called from PowerLine class
+        if (powerLine.findAvailablePerch(this)) {
+            this.setState('landing');
+        }
+    }
+
+    shouldTakeoff() {
+        // Simple random chance for now
+        return random(1) < 0.01;
+    }
+
     draw() {
-		if (this.id == 0) {
-			stroke(255, 0, 0)
-			// draw radius
-			fill(255, 102, 102, 100) // Light shade of red with some transparency
-        	ellipse(this.position.x, this.position.y, this.detectionRadius * 2);
-			
-		} 
-		else {
-			stroke(0,0,0)
-		}
+        if (this.id == 0) {
+            stroke(255, 0, 0)
+            // draw radius
+            fill(255, 102, 102, 100) // Light shade of red with some transparency
+            ellipse(this.position.x, this.position.y, this.detectionRadius * 2);
+
+        }
+        else {
+            stroke(0, 0, 0)
+            // Color based on energy level
+            let energyColor = map(this.energy, 0, this.maxEnergy, 0, 255);
+            stroke(energyColor, 200, 200);
+        }
         // 1. Draw a circle at this.position
-		strokeWeight(5);
-  		point(this.position);
+        strokeWeight(5);
+        point(this.position);
 
 
-		// Draw an arrow to show direction
+       // Draw a thin triangle to show direction
 		let arrowSize = 7;
 		push();
 		translate(this.position.x, this.position.y);
 		rotate(this.velocity.heading());
-		line(0, 0, 20, 0);
-		line(20, 0, 20 - arrowSize, arrowSize / 2);
-		line(20, 0, 20 - arrowSize, -arrowSize / 2);
+		beginShape();
+		vertex(0, -arrowSize / 2);
+		vertex(10, 0);
+		vertex(0, arrowSize / 2);
+		endShape(CLOSE);
 		pop();
     }
 }
