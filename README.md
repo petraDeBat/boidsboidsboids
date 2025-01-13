@@ -1,5 +1,9 @@
 # boidsboidsboids
 
+<p align="center">
+  <img width="400" alt="image" src="https://github.com/user-attachments/assets/734dc849-3b0c-4319-acdc-99db2db34b7b" />
+</p>
+
 Welcome to the boidsboidsboids project! 🐦✨ This project is an interactive bird flocking simulation built using p5.js. Watch as the birds (boids) fly around, avoid collisions, and form beautiful flocks. You can even adjust various parameters to see how they affect the flocking behavior!
 
 ## Features
@@ -18,7 +22,3 @@ To run the simulation, simply open the `index.html` file in your web browser. Yo
 ## GitHub Pages Link
 
 Check out the live simulation here: [boidsboidsboids](https://petradebat.github.io/boidsboidsboids/) 🌐
-
-## Detailed Instructions
-
-For detailed instructions on how to build and customize the simulation, please refer to the [tutorial.md](tutorial.md) file. 📖
